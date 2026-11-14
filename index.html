@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07111f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MatchCenter">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>MatchCenter - Tỷ số bóng đá</title>
+<style>
+:root{
+  --bg:#07111f;--card:#102238;--card2:#142a40;--line:#29415c;
+  --green:#42dfa0;--blue:#65a9ff;--red:#ff647c;--muted:#91a8c0;
+}
+*{box-sizing:border-box}
+html{min-height:100%;scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  margin:0;padding:calc(12px + env(safe-area-inset-top)) calc(13px + env(safe-area-inset-right))
+  calc(22px + env(safe-area-inset-bottom)) calc(13px + env(safe-area-inset-left));
+  min-height:100vh;overflow-x:hidden;color:#fff;
+  background:radial-gradient(ellipse at top,#122c43,var(--bg) 58%);
+  font-family:Arial,Helvetica,sans-serif;
+}
+button,input{font:inherit}
+button{
+  min-height:42px;padding:9px 13px;border:1px solid #34506c;border-radius:11px;
+  background:var(--card2);color:#fff;font-weight:700;cursor:pointer;touch-action:manipulation;
+}
+button:hover,button:focus-visible{border-color:var(--green);outline:none}
+button.active{background:#147b58;border-color:var(--green)}
+button:disabled{opacity:.5;cursor:not-allowed}
+input{
+  min-height:42px;min-width:0;padding:10px 12px;border:1px solid #34506c;
+  border-radius:11px;background:var(--card2);color:#fff;outline:none;
+}
+input:focus{border-color:var(--green)}
+input[type=date]{color-scheme:dark}
+header,.container{width:100%;max-width:1150px;margin:auto}
+header{padding:8px 0}
+.brand{display:flex;align-items:center;gap:11px}
+.brand-icon{
+  width:44px;height:44px;display:grid;place-items:center;border-radius:14px;
+  background:#176b50;font-size:24px;
+}
+h1{margin:0;color:var(--green);font-size:27px;letter-spacing:1px}
+.subtitle{margin:8px 0 17px;color:var(--muted);font-size:11px;letter-spacing:1.2px}
+.league-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.league-buttons button{font-size:13px}
+.nav-buttons{
+  position:sticky;top:0;z-index:20;display:flex;gap:8px;margin:12px 0;padding:9px 0;
+  background:rgba(7,17,31,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+}
+.nav-buttons button{flex:1}
+.panel{display:none}
+.panel.active{display:block;animation:appear .2s ease}
+@keyframes appear{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin:13px 0}
+h2{margin:0;font-size:21px}
+h3{margin:0}
+.muted,#standingInfo,#matchInfo{color:var(--muted);font-size:13px}
+.section-title{margin:24px 0 12px;color:var(--green);font-size:18px}
+.search-bar{display:flex;width:100%;gap:7px}
+.search-bar input{flex:1}
+.date-bar{display:grid;grid-template-columns:44px minmax(0,1fr) 44px auto;gap:6px;width:100%}
+.date-bar input{width:100%}
+.table-wrap{overflow-x:auto;margin-bottom:12px;border:1px solid var(--line);border-radius:13px;background:var(--card)}
+table{width:100%;min-width:650px;border-collapse:collapse}
+th,td{padding:12px 9px;border-bottom:1px solid var(--line);font-size:13px;text-align:center}
+th{background:#172e47;color:var(--green)}
+tr:last-child td{border-bottom:0}
+td.club-cell{text-align:left}
+.club-button{
+  display:flex;align-items:center;gap:9px;max-width:100%;min-height:36px;padding:3px;
+  border:0;background:transparent;text-align:left;
+}
+.club-button img{width:27px;height:27px;object-fit:contain;flex:none}
+.club-button:hover{color:var(--green)}
+.club-button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank,.points{color:var(--green);font-weight:700}
+.points{font-size:16px}
+.group-heading{
+  margin:15px 0 9px;padding:12px;border:1px solid var(--line);border-radius:11px;
+  background:var(--card2);color:var(--green);font-weight:700;
+}
+#matches,.event-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:12px}
+.match{
+  min-width:0;padding:15px;border:1px solid var(--line);border-radius:14px;
+  background:linear-gradient(145deg,#14263d,#0e1c2e);
+}
+.match-header,.match-footer{
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+  color:var(--muted);font-size:12px;
+}
+.match-header{padding-bottom:11px;border-bottom:1px solid var(--line)}
+.teams{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:13px 0}
+.team-list{flex:1;min-width:0}
+.team{display:flex;align-items:center;gap:8px;margin:9px 0;font-size:13px;font-weight:700}
+.team img{width:25px;height:25px;object-fit:contain;flex:none}
+.team span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.score{font-size:22px;font-weight:700;white-space:nowrap}
+.pending{color:var(--blue);font-size:16px}
+.status{font-size:11px;font-weight:700;white-space:nowrap}
+.live{color:var(--red)}
+.finished{color:var(--muted)}
+.scheduled{color:var(--blue)}
+.match-footer{padding-top:10px;border-top:1px solid var(--line)}
+.match-footer span:last-child{
+  max-width:48%;overflow:hidden;text-align:right;text-overflow:ellipsis;white-space:nowrap;
+}
+.empty{
+  grid-column:1/-1;padding:30px 15px;border:1px solid var(--line);border-radius:13px;
+  background:var(--card2);color:var(--muted);text-align:center;
+}
+.empty h3{margin-bottom:9px;color:var(--green)}
+.empty p{line-height:1.5;overflow-wrap:anywhere}
+.empty button{margin-top:8px}
+.club-profile{
+  display:flex;align-items:center;gap:14px;margin:14px 0;padding:15px;
+  border:1px solid var(--line);border-radius:14px;background:var(--card2);
+}
+.club-profile img{width:55px;height:55px;object-fit:contain}
+.club-profile h2{margin-bottom:6px;font-size:19px}
+.club-profile p{margin:0;color:var(--muted);font-size:13px}
+.back-button{margin:5px 0}
+.notification-toolbar{
+  padding:12px;border:1px solid var(--line);border-radius:13px;background:var(--card);
+}
+.notification-toolbar strong{font-size:14px}
+#notificationStatus{margin:-4px 0 10px;line-height:1.5}
+.footer-note{margin:22px 0 5px;color:#7189a3;font-size:11px;text-align:center}
+@media(max-width:600px){
+  h1{font-size:24px}.subtitle{font-size:10px}
+  .league-buttons button,.nav-buttons button{padding:9px 4px;font-size:12px}
+  h2{font-size:19px}
+  .search-bar{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:5px}
+  .search-bar button{padding:8px;font-size:11px}
+  .date-bar{grid-template-columns:42px minmax(0,1fr) 42px}
+  .date-bar button:last-child{grid-column:1/-1}
+  #matches,.event-grid{grid-template-columns:1fr;gap:10px}
+  .match{padding:13px}.team{font-size:12px}.score{font-size:20px}.match-footer{font-size:10px}
+  #standingTable .table-wrap{overflow:visible;border:0;background:transparent}
+  #standingTable table{display:block;min-width:0}
+  #standingTable thead{display:none}
+  #standingTable tbody{display:grid;gap:9px}
+  #standingTable tr{
+    display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;padding:11px;
+    border:1px solid var(--line);border-radius:13px;background:var(--card);
+  }
+  #standingTable td{
+    display:flex;min-width:0;flex-direction:column;align-items:center;justify-content:center;
+    padding:5px 1px;border:0;font-size:12px;overflow-wrap:anywhere;
+  }
+  #standingTable td::before{content:attr(data-label);margin-bottom:5px;color:var(--muted);font-size:10px}
+  #standingTable td.club-cell{
+    grid-column:1/-1;align-items:flex-start;padding:2px 0 10px;border-bottom:1px solid var(--line);
+  }
+  #standingTable td.club-cell::before{content:"CÂU LẠC BỘ"}
+  #standingTable .club-button{max-width:100%;padding:2px 0;font-size:13px}
+  #standingTable .club-button img{width:28px;height:28px}
+  #standingTable .rank,#standingTable .points{font-size:16px}
+}
+@media(orientation:landscape) and (max-height:500px){
+  .nav-buttons{position:relative}header{padding-top:3px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><div class="brand-icon">⚽</div><h1>MATCHCENTER</h1></div>
+  <p class="subtitle">TRUNG TÂM TỶ SỐ BÓNG ĐÁ TRỰC TUYẾN</p>
+  <button id="installAppBtn" type="button" onclick="installMatchCenter()" style="width:100%;margin:0 0 12px;background:#176b50;border-color:#42dfa0">📲 Cài MatchCenter vào điện thoại</button>
+  <div class="league-buttons">
+    <button class="active league-btn" data-league="eng.1" onclick="changeLeague('eng.1',this)">🏴 Ngoại hạng Anh</button>
+    <button class="league-btn" data-league="uefa.champions" onclick="changeLeague('uefa.champions',this)">⭐ Champions League</button>
+  </div>
+</header>
+
+<main class="container">
+  <nav class="nav-buttons">
+    <button id="navStandings" class="active" onclick="showPage('standings')">🏆 Bảng xếp hạng</button>
+    <button id="navScores" onclick="showPage('scores')">⚽ Tỷ số & lịch đấu</button>
+  </nav>
+
+  <section id="standings" class="panel active">
+    <div class="toolbar">
+      <h2>🏆 Bảng xếp hạng</h2>
+      <button onclick="loadStandings()">↻ Làm mới</button>
+    </div>
+    <div id="standingInfo">Đang tải bảng xếp hạng...</div>
+    <div id="standingTable"><div class="empty">Đang tải...</div></div>
+  </section>
+
+  <section id="scores" class="panel">
+    <div class="toolbar">
+      <div>
+        <button class="active filter-btn" data-filter="all" onclick="changeFilter('all',this)">Tất cả</button>
+        <button class="filter-btn" data-filter="live" onclick="changeFilter('live',this)">🔴 Live</button>
+        <button class="filter-btn" data-filter="upcoming" onclick="changeFilter('upcoming',this)">📅 Sắp đá</button>
+        <button class="filter-btn" data-filter="finished" onclick="changeFilter('finished',this)">Kết quả</button>
+      </div>
+      <button onclick="loadMatches()">↻ Làm mới</button>
+    </div>
+    <div class="toolbar">
+      <div class="search-bar">
+        <input id="searchInput" placeholder="Tìm kiếm CLB..." onkeydown="if(event.key==='Enter')searchMatches()">
+        <button onclick="searchMatches()">🔍 Tìm</button>
+        <button onclick="clearSearch()">✖</button>
+      </div>
+    </div>
+    <div class="toolbar">
+      <div class="date-bar">
+        <button onclick="changeDate(-1)">❮</button>
+        <input type="date" id="matchDate" onchange="loadMatches()">
+        <button onclick="changeDate(1)">❯</button>
+        <button onclick="goToday()">Hôm nay</button>
+      </div>
+    </div>
+    <div class="toolbar notification-toolbar">
+      <div>
+        <strong>🔔 Thông báo trận đấu</strong>
+        <div class="muted">Nhắc trước 15 phút · Báo khi có bàn thắng</div>
+      </div>
+      <button id="notificationButton" onclick="enableNotifications()">Bật thông báo</button>
+    </div>
+    <div id="notificationStatus" class="muted" aria-live="polite"></div>
+    <div id="matchInfo" class="toolbar">Chọn ngày để xem trận đấu.</div>
+    <div id="matches"><div class="empty">Đang tải trận đấu...</div></div>
+  </section>
+
+  <section id="clubDetail" class="panel">
+    <button class="back-button" onclick="showPage('standings')">← Quay lại bảng xếp hạng</button>
+    <div id="clubProfile"></div>
+    <h3 class="section-title">📜 Lịch sử thi đấu</h3>
+    <div id="clubHistory" class="event-grid"></div>
+    <h3 class="section-title">📅 Lịch thi đấu sắp tới</h3>
+    <div id="clubUpcoming" class="event-grid"></div>
+  </section>
+  <div class="footer-note">Dữ liệu tham khảo từ ESPN · Tự động cập nhật mỗi 60 giây</div>
+</main>
+
+<script>
+'use strict';
+
+const SITE_API='https://site.api.espn.com/apis/site/v2/sports/soccer/';
+const BASE_API='https://site.api.espn.com/apis/v2/sports/soccer/';
+const TZ='Asia/Ho_Chi_Minh';
+const REFRESH_MS=60000;
+
+let league='eng.1';
+let filter='all';
+let allEvents=[];
+let searchKeyword='';
+let currentPage='standings';
+let matchRequestId=0,standingRequestId=0,clubRequestId=0;
+let refreshTimer=null;
+let scoreBaseline=new Map();
+let notificationPermissionGranted=false;
+const kickoffNotified=new Set(JSON.parse(localStorage.getItem('mc_kickoff_notified')||'[]'));
+const goalNotified=new Set(JSON.parse(localStorage.getItem('mc_goal_notified')||'[]'));
+const NOTIFY_BEFORE_MINUTES=15;
+
+function localDateString(date=new Date()){
+  const parts=new Intl.DateTimeFormat('en-CA',{
+    timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'
+  }).formatToParts(date);
+  const part=t=>parts.find(x=>x.type===t).value;
+  return `${part('year')}-${part('month')}-${part('day')}`;
+}
+function formatDate(value){
+  const d=new Date(value);
+  if(Number.isNaN(d.getTime()))return 'Chưa có ngày';
+  return new Intl.DateTimeFormat('vi-VN',{
+    timeZone:TZ,weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'
+  }).format(d);
+}
+function formatTime(value){
+  const d=new Date(value);
+  if(Number.isNaN(d.getTime()))return '--:--';
+  return new Intl.DateTimeFormat('vi-VN',{
+    timeZone:TZ,hour:'2-digit',minute:'2-digit',hour12:false
+  }).format(d);
+}
+function esc(value){
+  return String(value??'').replace(/[&<>"']/g,c=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  })[c]);
+}
+function getLogo(team){
+  const candidates=[
+    team?.logo,team?.logos?.[0]?.href,team?.logos?.[0]?.url,
+    team?.logos?.[0]?.src
+  ];
+  for(const candidate of candidates){
+    try{
+      const url=new URL(candidate);
+      if(url.protocol==='https:')return url.href;
+    }catch{}
+  }
+  return '';
+}
+function logoHTML(url){
+  if(!url)return '';
+  try{
+    const u=new URL(url);
+    if(u.protocol!=='https:')return '';
+    return `<img src="${esc(u.href)}" alt="" loading="lazy" onerror="this.remove()">`;
+  }catch{return '';}
+}
+async function fetchJSON(url){
+  const response=await fetch(url,{cache:'no-store'});
+  if(!response.ok)throw new Error(`Máy chủ trả về lỗi HTTP ${response.status}`);
+  const data=await response.json();
+  if(!data||typeof data!=='object')throw new Error('Dữ liệu API không hợp lệ');
+  return data;
+}
+function showPage(page){
+  currentPage=page;
+  document.querySelectorAll('.panel').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-buttons button').forEach(el=>el.classList.remove('active'));
+  if(page==='standings'){
+    document.getElementById('standings').classList.add('active');
+    document.getElementById('navStandings').classList.add('active');
+  }else if(page==='scores'){
+    document.getElementById('scores').classList.add('active');
+    document.getElementById('navScores').classList.add('active');
+    if(!allEvents.length)loadMatches();
+  }else{
+    document.getElementById('clubDetail').classList.add('active');
+  }
+}
+
+/* Đọc giá trị thống kê từ các dạng dữ liệu ESPN */
+function normalizeStat(value){
+  if(value===null||value===undefined)return '-';
+  if(typeof value==='string'||typeof value==='number')return String(value);
+  if(typeof value==='object'){
+    for(const key of ['displayValue','value','summary','stat','name']){
+      if(value[key]!==undefined&&value[key]!==null&&typeof value[key]!=='object')
+        return String(value[key]);
+    }
+  }
+  return '-';
+}
+function statValue(entry,names){
+  const stats=entry?.stats??entry?.statistics??[];
+  for(const name of names){
+    let found=null;
+    if(Array.isArray(stats)){
+      found=stats.find(s=>[s?.name,s?.abbreviation,s?.shortDisplayName]
+        .some(v=>String(v??'').toLowerCase()===name.toLowerCase()));
+      if(found)found=found.value??found.displayValue??found;
+    }else if(stats&&typeof stats==='object'){
+      found=stats[name];
+    }
+    if(found!==undefined&&found!==null){
+      const value=normalizeStat(found);
+      if(value!=='-')return value;
+    }
+  }
+  return '-';
+}
+function collectEntries(root){
+  const output=[],seen=new Set();
+  function walk(node,group='',depth=0){
+    if(!node||typeof node!=='object'||depth>12)return;
+    if(Array.isArray(node)){node.forEach(item=>walk(item,group,depth+1));return;}
+    const currentGroup=node.name||node.displayName||node.abbreviation||group;
+    const entries=node.standings?.entries||node.entries;
+    if(Array.isArray(entries)){
+      entries.forEach(entry=>{
+        const team=entry?.team||{};
+        const key=String(team.id||team.uid||team.displayName||team.name||JSON.stringify(entry));
+        if(!seen.has(key)){seen.add(key);output.push({entry,group:currentGroup});}
+      });
+    }
+    if(Array.isArray(node.children))node.children.forEach(child=>walk(child,currentGroup,depth+1));
+    if(node.standings?.children)walk(node.standings.children,currentGroup,depth+1);
+  }
+  walk(root);
+  return output;
+}
+async function getStandings(){
+  const endpoints=[
+    BASE_API+league+'/standings',
+    SITE_API+league+'/standings'
+  ];
+  let lastError=null;
+  for(const url of endpoints){
+    try{
+      const data=await fetchJSON(url);
+      const rows=collectEntries(data);
+      if(rows.length)return rows;
+      lastError=new Error('API có phản hồi nhưng không tìm thấy danh sách đội trong dữ liệu bảng xếp hạng.');
+    }catch(error){lastError=error;}
+  }
+  throw lastError||new Error('Không thể tải bảng xếp hạng.');
+}
+async function loadStandings(){
+  const request=++standingRequestId;
+  const box=document.getElementById('standingTable');
+  const info=document.getElementById('standingInfo');
+  info.textContent='Đang tải bảng xếp hạng...';
+  box.innerHTML='<div class="empty">Đang kết nối dữ liệu ESPN...</div>';
+  try{
+    const rows=await getStandings();
+    if(request!==standingRequestId)return;
+    let html='',previousGroup=null,count=0;
+    rows.forEach(({entry,group},index)=>{
+      const team=entry.team||{};
+      const id=String(team.id||'');
+      const name=team.displayName||team.name||team.shortDisplayName||'Câu lạc bộ';
+      const logo=getLogo(team);
+      const rank=statValue(entry,['rank','playoffSeed']);
+      const played=statValue(entry,['gamesPlayed','played','matchesPlayed']);
+      const won=statValue(entry,['wins','win']);
+      const drawn=statValue(entry,['ties','draws','draw']);
+      const lost=statValue(entry,['losses','loss']);
+      const gf=statValue(entry,['pointsFor','goalsFor','gf']);
+      const ga=statValue(entry,['pointsAgainst','goalsAgainst','ga']);
+      const gd=statValue(entry,['pointDifferential','goalDifference','gd']);
+      const points=statValue(entry,['points','pts']);
+
+      if(group!==previousGroup){
+        if(previousGroup!==null)html+='</tbody></table></div>';
+        previousGroup=group;
+        if(group)html+=`<div class="group-heading">${esc(group)}</div>`;
+        html+=`<div class="table-wrap"><table><thead><tr>
+          <th>Hạng</th><th>CLB</th><th>Trận</th><th>Thắng</th><th>Hòa</th>
+          <th>Thua</th><th>BT:BB</th><th>HS</th><th>Điểm</th>
+        </tr></thead><tbody>`;
+      }
+      html+=`<tr>
+        <td class="rank" data-label="Hạng">${esc(rank==='-'?index+1:rank)}</td>
+        <td class="club-cell" data-label="Câu lạc bộ">
+          <button class="club-button" onclick="openClub('${esc(id)}','${esc(name)}','${esc(logo)}')">
+            ${logoHTML(logo)}<span>${esc(name)}</span>
+          </button>
+        </td>
+        <td data-label="Trận">${esc(played)}</td><td data-label="Thắng">${esc(won)}</td>
+        <td data-label="Hòa">${esc(drawn)}</td><td data-label="Thua">${esc(lost)}</td>
+        <td data-label="BT:BB">${esc(gf)}:${esc(ga)}</td><td data-label="Hiệu số">${esc(gd)}</td>
+        <td class="points" data-label="Điểm">${esc(points)}</td>
+      </tr>`;
+      count++;
+    });
+    if(count)html+='</tbody></table></div>';
+    box.innerHTML=html||'<div class="empty"><h3>Chưa có dữ liệu bảng xếp hạng</h3><p>Nguồn ESPN chưa trả về danh sách đội cho giải đấu này.</p></div>';
+    info.textContent=count?`Đã tải ${count} đội bóng.`:'Không có dữ liệu bảng xếp hạng.';
+  }catch(error){
+    if(request!==standingRequestId)return;
+    console.error('Lỗi bảng xếp hạng:',error);
+    box.innerHTML=`<div class="empty"><h3>Không tải được bảng xếp hạng</h3><p>${esc(error.message)}</p><button onclick="loadStandings()">↻ Thử lại</button></div>`;
+    info.textContent='Không thể kết nối nguồn dữ liệu.';
+  }
+}
+
+/* Trạng thái trận đấu: ESPN có thể đặt ở event hoặc competition */
+function getState(event){
+  const raw=event?.status?.type?.state||
+    event?.competitions?.[0]?.status?.type?.state||
+    event?.status?.type?.name||
+    event?.competitions?.[0]?.status?.type?.name||'';
+  const state=String(raw).toLowerCase();
+  if(['post','final','completed','complete'].includes(state))return 'post';
+  if(['in','live','in_progress','halftime'].includes(state))return 'in';
+  if(state==='pre'||state==='scheduled'||state==='upcoming')return 'pre';
+  const detail=String(event?.status?.type?.description||
+    event?.competitions?.[0]?.status?.type?.description||'').toLowerCase();
+  if(detail.includes('final')||detail.includes('ended'))return 'post';
+  if(detail.includes('progress')||detail.includes('half')||detail.includes('live'))return 'in';
+  return 'pre';
+}
+
+/* ESPN có thể trả score dạng số, chuỗi hoặc object; tuyệt đối không in [object Object] */
+function getScore(value){
+  if(value===null||value===undefined)return '-';
+  if(typeof value==='string'||typeof value==='number')return String(value);
+  if(typeof value==='object'){
+    for(const key of ['displayValue','value','score','current','summary','text']){
+      if(value[key]!==undefined&&value[key]!==null){
+        const result=getScore(value[key]);
+        if(result!=='-')return result;
+      }
+    }
+  }
+  return '-';
+}
+function getCompetitors(event){
+  const comp=event?.competitions?.[0]||{};
+  return comp.competitors||event?.competitors||[];
+}
+function getTeamName(item,fallback){
+  return item?.team?.displayName||item?.team?.name||item?.team?.shortDisplayName||fallback;
+}
+function getVenue(event){
+  return event?.competitions?.[0]?.venue?.fullName||
+    event?.competitions?.[0]?.venue?.address?.city||'';
+}
+function getEventScore(event,teamId){
+  const teams=getCompetitors(event);
+  const selected=teams.find(t=>String(t.team?.id)===String(teamId));
+  const opponent=teams.find(t=>String(t.team?.id)!==String(teamId));
+  return `${esc(getScore(selected?.score))} : ${esc(getScore(opponent?.score))}`;
+}
+
+async function openClub(id,name,logo){
+  if(!id){alert('Không tìm thấy mã câu lạc bộ.');return;}
+  const request=++clubRequestId;
+  showPage('clubDetail');
+  document.getElementById('clubProfile').innerHTML=`<div class="club-profile">${logoHTML(logo)}<div><h2>${esc(name)}</h2><p>Đang tải lịch thi đấu...</p></div></div>`;
+  document.getElementById('clubHistory').innerHTML='<div class="empty">Đang tải lịch sử...</div>';
+  document.getElementById('clubUpcoming').innerHTML='<div class="empty">Đang tải lịch sắp tới...</div>';
+  try{
+    const data=await fetchJSON(SITE_API+league+'/teams/'+encodeURIComponent(id)+'/schedule');
+    if(request!==clubRequestId)return;
+    const team=data.team||{};
+    const events=Array.isArray(data.events)?data.events:[];
+    const teamName=team.displayName||team.name||name;
+    document.getElementById('clubProfile').innerHTML=`
+      <div class="club-profile">${logoHTML(getLogo(team)||logo)}
+        <div><h2>${esc(teamName)}</h2><p>${esc(team.recordSummary||'Lịch thi đấu mùa giải')}</p></div>
+      </div>`;
+    const history=events.filter(e=>getState(e)==='post')
+      .sort((a,b)=>new Date(b.date)-new Date(a.date));
+    const upcoming=events.filter(e=>getState(e)==='pre'||getState(e)==='in')
+      .sort((a,b)=>new Date(a.date)-new Date(b.date));
+    renderClubEvents('clubHistory',history,id);
+    renderClubEvents('clubUpcoming',upcoming,id);
+  }catch(error){
+    if(request!==clubRequestId)return;
+    console.error('Lỗi lịch CLB:',error);
+    document.getElementById('clubHistory').innerHTML=`<div class="empty"><h3>Không tải được lịch sử</h3><p>${esc(error.message)}</p></div>`;
+    document.getElementById('clubUpcoming').innerHTML='<div class="empty">Không tải được lịch thi đấu sắp tới.</div>';
+  }
+}
+function renderClubEvents(target,events,teamId){
+  const box=document.getElementById(target);
+  if(!events.length){
+    box.innerHTML='<div class="empty">Không có trận đấu trong danh mục này.</div>';
+    return;
+  }
+  box.innerHTML=events.map(event=>{
+    const teams=getCompetitors(event);
+    const us=teams.find(t=>String(t.team?.id)===String(teamId));
+    const opponent=teams.find(t=>String(t.team?.id)!==String(teamId));
+    const state=getState(event);
+    const completed=state==='post';
+    const label=completed?'✓ KẾT THÚC':state==='in'?'🔴 ĐANG ĐÁ':'📅 SẮP DIỄN RA';
+    const score=completed
+      ?`${esc(getScore(us?.score))} : ${esc(getScore(opponent?.score))}`:'VS';
+    return `<article class="match">
+      <div class="match-header"><span>${formatDate(event.date)}</span><span>${label}</span></div>
+      <div class="teams"><div class="team-list">
+        <div class="team">${logoHTML(getLogo(us?.team))}<span>${esc(getTeamName(us,'CLB'))}</span></div>
+        <div class="team">${logoHTML(getLogo(opponent?.team))}<span>${esc(getTeamName(opponent,'Đối thủ'))}</span></div>
+      </div><div class="score ${completed?'':'pending'}">${score}</div></div>
+      <div class="match-footer"><span>🕒 ${formatTime(event.date)} (VN)</span><span>${esc(getVenue(event))}</span></div>
+    </article>`;
+  }).join('');
+}
+
+/* Danh sách trận đấu theo ngày */
+function renderMatch(event){
+  const teams=getCompetitors(event);
+  const home=teams.find(t=>t.homeAway==='home')||teams[0]||{};
+  const away=teams.find(t=>t.homeAway==='away')||teams[1]||{};
+  const state=getState(event);
+  const pending=state==='pre';
+  const status=state==='post'?['✓ KẾT THÚC','finished']:
+    state==='in'?['🔴 LIVE','live']:['📅 SẮP DIỄN RA','scheduled'];
+  const score=pending?'VS':`${esc(getScore(home.score))} : ${esc(getScore(away.score))}`;
+  return `<article class="match">
+    <div class="match-header"><span>${formatDate(event.date)}</span><span class="status ${status[1]}">${status[0]}</span></div>
+    <div class="teams"><div class="team-list">
+      <div class="team">${logoHTML(getLogo(home.team))}<span>${esc(getTeamName(home,'Đội nhà'))}</span></div>
+      <div class="team">${logoHTML(getLogo(away.team))}<span>${esc(getTeamName(away,'Đội khách'))}</span></div>
+    </div><div class="score ${pending?'pending':''}">${score}</div></div>
+    <div class="match-footer"><span>🕒 ${formatTime(event.date)} (VN)</span><span>${esc(getVenue(event))}</span></div>
+  </article>`;
+}
+function renderMatches(){
+  let events=[...allEvents];
+  if(filter==='live')events=events.filter(e=>getState(e)==='in');
+  if(filter==='upcoming')events=events.filter(e=>getState(e)==='pre');
+  if(filter==='finished')events=events.filter(e=>getState(e)==='post');
+  if(searchKeyword){
+    events=events.filter(event=>getCompetitors(event).some(item=>{
+      const team=item.team||{};
+      return [team.displayName,team.name,team.shortDisplayName,team.abbreviation]
+        .some(value=>String(value||'').toLowerCase().includes(searchKeyword));
+    }));
+  }
+  events.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const box=document.getElementById('matches');
+  if(!events.length){
+    const message=searchKeyword
+      ?`Không tìm thấy "${esc(searchKeyword)}" trong ngày đã chọn.`
+      :'Không có trận đấu phù hợp trong ngày này.';
+    box.innerHTML=`<div class="empty"><h3>🔍 Không tìm thấy trận đấu</h3><p>${message}</p><p>Hãy thử tên câu lạc bộ khác hoặc chọn ngày khác.</p></div>`;
+    return;
+  }
+  box.innerHTML=events.map(renderMatch).join('');
+}
+function notificationSupported(){
+  return 'Notification' in window && window.isSecureContext;
+}
+function updateNotificationUI(){
+  const button=document.getElementById('notificationButton');
+  const status=document.getElementById('notificationStatus');
+  if(!button||!status)return;
+  if(!('Notification' in window)){
+    button.disabled=true;
+    button.textContent='Không hỗ trợ';
+    status.textContent='Trình duyệt này không hỗ trợ thông báo.';
+  }else if(!window.isSecureContext){
+    button.disabled=true;
+    button.textContent='Cần HTTPS';
+    status.textContent='Thông báo trình duyệt chỉ hoạt động khi website chạy bằng HTTPS hoặc localhost.';
+  }else if(Notification.permission==='granted'){
+    button.textContent='✓ Đã bật thông báo';
+    button.classList.add('active');
+    status.textContent='Đang bật: nhắc trước trận 15 phút và báo khi phát hiện bàn thắng. Hãy giữ trang web đang mở.';
+  }else if(Notification.permission==='denied'){
+    button.textContent='Đã bị chặn';
+    button.classList.remove('active');
+    status.textContent='Bạn đã chặn thông báo. Hãy mở quyền thông báo của website trong cài đặt trình duyệt.';
+  }else{
+    button.textContent='Bật thông báo';
+    button.classList.remove('active');
+    status.textContent='Bấm “Bật thông báo” và cho phép trình duyệt gửi thông báo.';
+  }
+}
+async function enableNotifications(){
+  if(!notificationSupported()){
+    updateNotificationUI();
+    return;
+  }
+  try{
+    const permission=await Notification.requestPermission();
+    notificationPermissionGranted=permission==='granted';
+    updateNotificationUI();
+    if(notificationPermissionGranted){
+      sendNotification('MatchCenter đã bật thông báo',{
+        body:'Bạn sẽ được nhắc trước giờ bóng lăn 15 phút và nhận cảnh báo khi có bàn thắng.'
+      });
+      // Tải lại dữ liệu để bắt đầu theo dõi ngay sau khi cấp quyền.
+      loadMatches();
+    }
+  }catch(error){
+    console.error('Không thể bật thông báo:',error);
+    document.getElementById('notificationStatus').textContent='Không thể xin quyền thông báo trên trình duyệt này.';
+  }
+}
+function sendNotification(title,options={}){
+  if(!notificationSupported()||Notification.permission!=='granted')return;
+  try{
+    const notice=new Notification(title,{
+      body:options.body||'',
+      icon:options.icon||'',
+      tag:options.tag||'matchcenter-'+Date.now(),
+      renotify:false
+    });
+    notice.onclick=()=>{
+      window.focus();
+      notice.close();
+    };
+  }catch(error){
+    console.warn('Không gửi được thông báo:',error);
+  }
+}
+function persistNotificationSets(){
+  try{
+    localStorage.setItem('mc_kickoff_notified',JSON.stringify([...kickoffNotified].slice(-500)));
+    localStorage.setItem('mc_goal_notified',JSON.stringify([...goalNotified].slice(-1000)));
+  }catch(error){console.warn('Không lưu được lịch sử thông báo:',error);}
+}
+function numericScore(value){
+  const raw=getScore(value);
+  if(raw==='-')return null;
+  const match=String(raw).match(/-?\d+/);
+  return match?Number(match[0]):null;
+}
+function processMatchNotifications(events){
+  if(!notificationSupported()||Notification.permission!=='granted')return;
+  const now=Date.now();
+  for(const event of events){
+    const id=String(event.id||event.uid||event.date||'');
+    if(!id)continue;
+    const kickoff=new Date(event.date).getTime();
+    if(!Number.isFinite(kickoff))continue;
+
+    // Nhắc một lần trong khoảng 15 phút trước giờ bắt đầu.
+    const kickoffKey=league+':'+id;
+    const reminderAt=kickoff-NOTIFY_BEFORE_MINUTES*60*1000;
+    if(now>=reminderAt&&now<kickoff&&!kickoffNotified.has(kickoffKey)){
+      const teams=getCompetitors(event);
+      const home=getTeamName(teams.find(t=>t.homeAway==='home')||teams[0],'Đội nhà');
+      const away=getTeamName(teams.find(t=>t.homeAway==='away')||teams[1],'Đội khách');
+      sendNotification('⏰ Sắp đến giờ bóng lăn',{
+        body:`${home} vs ${away} · Bắt đầu lúc ${formatTime(event.date)} (giờ Việt Nam)`,
+        tag:'kickoff-'+kickoffKey
+      });
+      kickoffNotified.add(kickoffKey);
+    }
+
+    // So sánh tỷ số với lần tải trước để phát hiện bàn thắng.
+    const teams=getCompetitors(event);
+    const home=teams.find(t=>t.homeAway==='home')||teams[0]||{};
+    const away=teams.find(t=>t.homeAway==='away')||teams[1]||{};
+    const homeScore=numericScore(home.score);
+    const awayScore=numericScore(away.score);
+    const scoreKey=league+':'+id;
+    const previous=scoreBaseline.get(scoreKey);
+    if(previous&&homeScore!==null&&awayScore!==null){
+      if(homeScore>previous.home){
+        const goalKey=scoreKey+':home:'+homeScore+':'+awayScore;
+        if(!goalNotified.has(goalKey)){
+          sendNotification('⚽ GOOOOAL!',{
+            body:`${getTeamName(home,'Đội nhà')} ghi bàn! Tỷ số ${homeScore} - ${awayScore} trước ${getTeamName(away,'Đội khách')}.`,
+            tag:'goal-'+goalKey
+          });
+          goalNotified.add(goalKey);
+        }
+      }
+      if(awayScore>previous.away){
+        const goalKey=scoreKey+':away:'+homeScore+':'+awayScore;
+        if(!goalNotified.has(goalKey)){
+          sendNotification('⚽ GOOOOAL!',{
+            body:`${getTeamName(away,'Đội khách')} ghi bàn! Tỷ số ${homeScore} - ${awayScore} trước ${getTeamName(home,'Đội nhà')}.`,
+            tag:'goal-'+goalKey
+          });
+          goalNotified.add(goalKey);
+        }
+      }
+    }
+    if(homeScore!==null&&awayScore!==null){
+      scoreBaseline.set(scoreKey,{home:homeScore,away:awayScore});
+    }
+  }
+  persistNotificationSets();
+}
+async function loadMatches(){
+  const date=document.getElementById('matchDate').value;
+  if(!date)return;
+  const request=++matchRequestId;
+  const box=document.getElementById('matches');
+  const info=document.getElementById('matchInfo');
+  info.textContent='Đang tải dữ liệu...';
+  box.innerHTML='<div class="empty">Đang tải trận đấu...</div>';
+  try{
+    const url=SITE_API+league+'/scoreboard?limit=100&dates='+date.replaceAll('-','');
+    const data=await fetchJSON(url);
+    if(request!==matchRequestId)return;
+    allEvents=Array.isArray(data.events)?data.events:[];
+    processMatchNotifications(allEvents);
+    renderMatches();
+    info.textContent=`Ngày ${date} · ${allEvents.length} trận đấu`;
+  }catch(error){
+    if(request!==matchRequestId)return;
+    allEvents=[];
+    console.error('Lỗi tải trận đấu:',error);
+    info.textContent='Không tải được dữ liệu.';
+    box.innerHTML=`<div class="empty"><h3>Không thể tải trận đấu</h3><p>${esc(error.message)}</p><button onclick="loadMatches()">↻ Thử lại</button></div>`;
+  }
+}
+function searchMatches(){
+  const value=document.getElementById('searchInput').value.trim();
+  if(!value){alert('Bạn chưa nhập tên câu lạc bộ!');return;}
+  searchKeyword=value.toLocaleLowerCase('vi');
+  renderMatches();
+  const count=document.querySelectorAll('#matches .match').length;
+  document.getElementById('matchInfo').textContent=count
+    ?`Tìm thấy ${count} trận phù hợp với "${value}".`
+    :`Không tìm thấy "${value}" trong ngày đang chọn.`;
+}
+function clearSearch(){
+  document.getElementById('searchInput').value='';
+  searchKeyword='';
+  renderMatches();
+  document.getElementById('matchInfo').textContent=`${allEvents.length} trận đấu`;
+}
+function changeFilter(type,button){
+  filter=type;
+  document.querySelectorAll('.filter-btn').forEach(el=>el.classList.remove('active'));
+  button.classList.add('active');
+  renderMatches();
+}
+function changeDate(days){
+  const input=document.getElementById('matchDate');
+  const [year,month,day]=input.value.split('-').map(Number);
+  const date=new Date(Date.UTC(year,month-1,day+days,12));
+  input.value=[date.getUTCFullYear(),String(date.getUTCMonth()+1).padStart(2,'0'),
+    String(date.getUTCDate()).padStart(2,'0')].join('-');
+  loadMatches();
+}
+function goToday(){
+  document.getElementById('matchDate').value=localDateString();
+  loadMatches();
+}
+function changeLeague(id,button){
+  league=id;
+  document.querySelectorAll('.league-btn').forEach(el=>el.classList.remove('active'));
+  button.classList.add('active');
+  allEvents=[];
+  searchKeyword='';
+  document.getElementById('searchInput').value='';
+  if(currentPage==='clubDetail')showPage('standings');
+  loadStandings();
+  if(currentPage==='scores')loadMatches();
+}
+function startAutoRefresh(){
+  if(refreshTimer)clearInterval(refreshTimer);
+  refreshTimer=setInterval(()=>{
+    if(currentPage==='standings')loadStandings();
+    else if(currentPage==='scores')loadMatches();
+    // Khi đang ở trang chi tiết CLB, không tải lại để tránh gián đoạn người xem.
+  },25000);
+}
+
+
+/* Cài đặt PWA trên Android/Chrome; iPhone dùng menu Chia sẻ > Thêm vào MH chính */
+let deferredInstallPrompt=null;
+window.addEventListener('beforeinstallprompt',event=>{
+  event.preventDefault();
+  deferredInstallPrompt=event;
+  const btn=document.getElementById('installAppBtn');
+  if(btn)btn.textContent='📲 Cài ứng dụng MatchCenter';
+});
+window.addEventListener('appinstalled',()=>{
+  deferredInstallPrompt=null;
+  const btn=document.getElementById('installAppBtn');
+  if(btn)btn.textContent='✓ MatchCenter đã được cài đặt';
+});
+async function installMatchCenter(){
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt=null;
+    return;
+  }
+  const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  if(isIOS){
+    alert('Cài trên iPhone/iPad:\n1. Mở trang web bằng Safari.\n2. Nhấn nút Chia sẻ (hình vuông có mũi tên).\n3. Chọn Thêm vào màn hình chính.\n4. Nhấn Thêm.');
+  }else if(window.matchMedia('(display-mode: standalone)').matches){
+    alert('MatchCenter đã chạy ở chế độ ứng dụng.');
+  }else{
+    alert('Mở website bằng Chrome, sau đó chọn menu ⋮ > Cài đặt ứng dụng hoặc Thêm vào màn hình chính.');
+  }
+}
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(err=>console.warn('Không đăng ký được Service Worker:',err)));
+}
+
+/* Khởi động: bảng xếp hạng luôn là màn hình đầu tiên */
+document.getElementById('matchDate').value=localDateString();
+updateNotificationUI();
+loadStandings();
+startAutoRefresh();
+</script>
+</body>
+</html>
