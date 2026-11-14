@@ -165,6 +165,107 @@ td.club-cell{text-align:left}
 @media(orientation:landscape) and (max-height:500px){
   .nav-buttons{position:relative}header{padding-top:3px}
 }
+
+/* ===== MOBILE FIRST: MatchCenter cho điện thoại ===== */
+:root{--mobile-nav-height:66px}
+html{scroll-padding-top:16px;scroll-padding-bottom:calc(var(--mobile-nav-height) + env(safe-area-inset-bottom) + 18px)}
+button,input{font-size:14px}
+button{-webkit-tap-highlight-color:transparent;user-select:none}
+@media(max-width:700px){
+  body{
+    padding:calc(9px + env(safe-area-inset-top)) calc(11px + env(safe-area-inset-right))
+      calc(var(--mobile-nav-height) + 30px + env(safe-area-inset-bottom))
+      calc(11px + env(safe-area-inset-left));
+    background:radial-gradient(ellipse at top,#15334c 0%,var(--bg) 58%);
+  }
+  header{padding:3px 0 0}
+  .brand{gap:9px}
+  .brand-icon{width:38px;height:38px;border-radius:12px;font-size:21px}
+  h1{font-size:22px;letter-spacing:.7px}
+  .subtitle{margin:6px 0 11px;font-size:9px;letter-spacing:.8px}
+  #installAppBtn{min-height:39px!important;margin-bottom:9px!important;font-size:12px}
+  .league-buttons{gap:7px}
+  .league-buttons button{min-height:42px;padding:8px 5px;font-size:11px}
+  .nav-buttons{
+    position:fixed;top:auto;right:0;bottom:0;left:0;z-index:100;
+    display:grid;grid-template-columns:1fr 1fr;gap:8px;
+    margin:0;padding:8px max(11px,env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(11px,env(safe-area-inset-left));
+    min-height:calc(var(--mobile-nav-height) + env(safe-area-inset-bottom));
+    background:rgba(7,17,31,.96);border-top:1px solid #34506c;border-bottom:0;
+    box-shadow:0 -8px 25px rgba(0,0,0,.25);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)
+  }
+  .nav-buttons button{min-height:46px;padding:8px 5px;border-radius:13px;font-size:12px;line-height:1.2}
+  .toolbar{gap:8px;margin:11px 0}
+  h2{font-size:18px}
+  .toolbar>button{min-height:39px;padding:8px 11px;font-size:12px}
+  .section-title{margin:20px 0 10px;font-size:16px}
+  .muted,#standingInfo,#matchInfo{font-size:12px;line-height:1.45}
+  /* Bộ lọc tự xuống dòng, không bị tràn ngang */
+  #scores>.toolbar:first-child{align-items:stretch}
+  #scores>.toolbar:first-child>div:first-child{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;width:100%}
+  #scores>.toolbar:first-child>button{width:100%}
+  .filter-btn{min-width:0;min-height:40px;padding:7px 5px;font-size:12px}
+  .search-bar{display:grid;grid-template-columns:minmax(0,1fr) 68px 42px;gap:6px}
+  .search-bar input{width:100%;min-height:43px;font-size:13px}
+  .search-bar button{min-height:43px;padding:7px 5px;font-size:11px}
+  .date-bar{grid-template-columns:42px minmax(0,1fr) 42px;gap:6px}
+  .date-bar button{min-height:43px;padding:7px 4px}
+  .date-bar input{min-height:43px;width:100%;font-size:13px}
+  .date-bar button:last-child{grid-column:1/-1;min-height:38px}
+  .notification-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px}
+  .notification-toolbar strong{font-size:12px}
+  .notification-toolbar .muted{font-size:10px}
+  #notificationButton{flex:none;min-height:39px;padding:7px 9px;font-size:11px}
+  #notificationStatus{font-size:11px}
+  #matches,.event-grid{grid-template-columns:minmax(0,1fr);gap:9px}
+  .match{padding:12px;border-radius:13px}
+  .match-header{padding-bottom:9px;font-size:10px}
+  .teams{gap:6px;padding:11px 0}
+  .team-list{min-width:0}
+  .team{gap:6px;margin:8px 0;font-size:12px}
+  .team img{width:23px;height:23px}
+  .score{font-size:19px}
+  .pending{font-size:14px}
+  .status{font-size:10px}
+  .match-footer{padding-top:8px;font-size:10px}
+  .group-heading{margin:12px 0 8px;padding:10px;font-size:12px}
+  .club-profile{gap:10px;padding:12px}
+  .club-profile img{width:46px;height:46px}
+  .club-profile h2{font-size:17px}
+  .club-profile p{font-size:11px}
+  .empty{padding:23px 12px}
+  .footer-note{margin:17px 0 4px;font-size:10px}
+  /* Bảng xếp hạng chuyển thành các thẻ, không cần vuốt ngang */
+  #standingTable .table-wrap{overflow:visible;border:0;background:transparent}
+  #standingTable table{display:block;width:100%;min-width:0}
+  #standingTable thead{display:none}
+  #standingTable tbody{display:grid;grid-template-columns:1fr;gap:8px}
+  #standingTable tr{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;padding:10px;border:1px solid var(--line);border-radius:13px;background:linear-gradient(145deg,#14263d,#0e1c2e)}
+  #standingTable td{display:flex;min-width:0;flex-direction:column;align-items:center;justify-content:center;padding:5px 1px;border:0;font-size:12px;overflow-wrap:anywhere}
+  #standingTable td::before{content:attr(data-label);margin-bottom:4px;color:var(--muted);font-size:9px}
+  #standingTable td.club-cell{grid-column:1/-1;align-items:flex-start;padding:1px 0 8px;border-bottom:1px solid var(--line)}
+  #standingTable td.club-cell::before{content:"CÂU LẠC BỘ"}
+  #standingTable .club-button{max-width:100%;min-height:34px;padding:2px 0;font-size:12px}
+  #standingTable .club-button img{width:27px;height:27px}
+  #standingTable .rank,#standingTable .points{font-size:15px}
+}
+@media(max-width:380px){
+  h1{font-size:20px}
+  .league-buttons button{font-size:10px}
+  .nav-buttons button{font-size:11px}
+  .match{padding:10px}
+  .team{font-size:11px}
+  .score{font-size:18px}
+  .notification-toolbar{align-items:flex-start;flex-direction:column}
+  #notificationButton{width:100%}
+}
+@media(orientation:landscape) and (max-height:500px){
+  body{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+  .nav-buttons{position:sticky;top:0;bottom:auto;right:auto;left:auto;min-height:0;padding:6px 0;background:rgba(7,17,31,.95);box-shadow:none;border-top:0;border-bottom:1px solid var(--line)}
+  .nav-buttons button{min-height:38px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
 </style>
 </head>
 <body>
@@ -238,7 +339,7 @@ td.club-cell{text-align:left}
     <h3 class="section-title">📅 Lịch thi đấu sắp tới</h3>
     <div id="clubUpcoming" class="event-grid"></div>
   </section>
-  <div class="footer-note">Dữ liệu tham khảo từ ESPN · Tự động cập nhật mỗi 60 giây</div>
+  <div class="footer-note">Dữ liệu tham khảo từ ESPN · Tự động cập nhật khi đang mở ứng dụng</div>
 </main>
 
 <script>
